@@ -1,16 +1,28 @@
-import { NativeModules, NativeEventEmitter } from "react-native";
-import type {
-  CheckoutOptions,
-  FlexibleRazorPayModuleEvents,
-  SuccessResponse,
-} from "./FlexibleRazorPay.types";
+// import { NativeModules, NativeEventEmitter } from "react-native";
+// import type {
+//   CheckoutOptions,
+//   FlexibleRazorPayModuleEvents,
+//   SuccessResponse,
+// } from "./FlexibleRazorPay.types";
 
-const { FlexibleRazorPay } = NativeModules;
+// const { FlexibleRazorPay } = NativeModules;
 
-export function openRazorpay(options: CheckoutOptions): Promise<SuccessResponse> {
-  return FlexibleRazorPay.open(options);
+// export function openRazorpay(options: CheckoutOptions): Promise<SuccessResponse> {
+//   return FlexibleRazorPay.open(options);
+// }
+
+// export const RazorpayEvents = new NativeEventEmitter(FlexibleRazorPay);
+
+// export default FlexibleRazorPay;
+
+import { NativeModules, NativeEventEmitter } from 'react-native';
+
+const { FlexibleRazorPayModule } = NativeModules;
+
+if (!FlexibleRazorPayModule) {
+  throw new Error('FlexibleRazorPayModule is not linked. Make sure native code is installed and built.');
 }
 
-export const RazorpayEvents = new NativeEventEmitter(FlexibleRazorPay);
+export const FlexibleRazorPayEmitter = new NativeEventEmitter(FlexibleRazorPayModule);
 
-export default FlexibleRazorPay;
+export default FlexibleRazorPayModule;
