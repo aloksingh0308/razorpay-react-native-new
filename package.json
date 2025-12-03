@@ -8,6 +8,7 @@
 
 "scripts": {
   "build": "rimraf build && tsc",
+  "prepare": "npm run build",
   "clean": "rimraf build",
   "open:ios": "xed example/ios",
   "open:android": "open -a \"Android Studio\" example/android"
