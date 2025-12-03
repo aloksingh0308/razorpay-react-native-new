@@ -1,13 +1,16 @@
-import { NativeModule, requireNativeModule } from "react-native"
-
-import {
+import { NativeModules, NativeEventEmitter } from "react-native";
+import type {
   CheckoutOptions,
   FlexibleRazorPayModuleEvents,
   SuccessResponse,
-} from "./FlexibleRazorPay.types"
+} from "./FlexibleRazorPay.types";
 
-declare class FlexibleRazorPayModule extends NativeModule<FlexibleRazorPayModuleEvents> {
-  open(options: CheckoutOptions): Promise<SuccessResponse>
+const { FlexibleRazorPay } = NativeModules;
+
+export function openRazorpay(options: CheckoutOptions): Promise<SuccessResponse> {
+  return FlexibleRazorPay.open(options);
 }
 
-export default requireNativeModule<FlexibleRazorPayModule>("FlexibleRazorPay")
+export const RazorpayEvents = new NativeEventEmitter(FlexibleRazorPay);
+
+export default FlexibleRazorPay;

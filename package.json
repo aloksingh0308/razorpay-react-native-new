@@ -1,40 +1,40 @@
 {
-  "name": "frzp",
-  "version": "0.1.2",
-  "description": "Razorpay Checkout for React Native New Architecture",
+  "name": "react-native-razorpay-custom",
+  "version": "0.1.0",
+  "description": "Razorpay Checkout module for React Native (New Architecture Compatible)",
   "main": "build/index.js",
   "types": "build/index.d.ts",
+
   "scripts": {
-    "build": "expo-module build",
-    "clean": "expo-module clean",
-    "lint": "expo-module lint",
-    "test": "expo-module test",
-    "prepare": "expo-module prepare",
-    "prepublishOnly": "expo-module prepublishOnly",
-    "expo-module": "expo-module",
+    "build": "tsc",
+    "clean": "rimraf build",
     "open:ios": "xed example/ios",
     "open:android": "open -a \"Android Studio\" example/android"
   },
+
   "keywords": [
     "react-native",
-    "expo",
-    "frzp",
+    "razorpay",
+    "payment",
+    "native-module",
     "FlexibleRazorPay"
   ],
-  "repository": "https://github.com/anuvaya/frzp",
-  "bugs": {
-    "url": "https://github.com/anuvaya/frzp/issues"
-  },
-  "author": "Nitesh Kumar Niranjan <hello@theux.dev> (niranjannitesh)",
+
+  "repository": "https://github.com/yourname/react-native-razorpay-custom",
+  "author": "Alok Kumar Singh",
   "license": "MIT",
-  "homepage": "https://github.com/anuvaya/frzp#readme",
-  "dependencies": {},
-  "devDependencies": {
-    "@types/react": "~19.0.0",
-    "react-native": "0.78.0"
-  },
+  "homepage": "https://github.com/yourname/react-native-razorpay-custom#readme",
+
   "peerDependencies": {
     "react": "*",
     "react-native": "*"
+  },
+
+  "devDependencies": {
+    "react-native": "0.78.0",
+    "typescript": "^5.6.3",
+    "@types/react": "~19.0.0",
+    "@types/node": "^20.11.30",
+    "rimraf": "^6.0.1"
   }
 }
