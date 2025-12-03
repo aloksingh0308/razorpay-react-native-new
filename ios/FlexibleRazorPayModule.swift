@@ -1,80 +1,92 @@
-import ExpoModulesCore
+import Foundation
 import Razorpay
+import React
 
-public class FlexibleRazorPayModule: Module {
+@objc(FlexibleRazorPayModule)
+class FlexibleRazorPayModule: RCTEventEmitter, RazorpayPaymentCompletionProtocolWithData {
+
   private var razorpay: RazorpayCheckout?
-  private var currentPromise: Promise?
+  private var currentResolve: RCTPromiseResolveBlock?
+  private var currentReject: RCTPromiseRejectBlock?
 
-  public func definition() -> ModuleDefinition {
-    Name("FlexibleRazorPay")
+  // MARK: - RCTEventEmitter
 
-    AsyncFunction("open") { (options: [String: Any], promise: Promise) in
-      openRazorpayCheckout(options: options, promise: promise)
-    }
+  override static func requiresMainQueueSetup() -> Bool {
+    return true
   }
 
-  private func openRazorpayCheckout(options: [String: Any], promise: Promise) {
-    self.currentPromise = promise
-    DispatchQueue.main.async {
-      guard let key = options["key"] as? String else {
-        promise.reject(
-          NSError(
-            domain: "ExpoRazorpay", code: 100,
-            userInfo: [NSLocalizedDescriptionKey: "Key is required"])
-        )
-        return
-      }
+  override func supportedEvents() -> [String]! {
+    // If you want to emit events, list them here.
+    // For now we only use promises, so leave it empty.
+    return []
+  }
+
+  // MARK: - Exported Methods to JS
+
+  /// JS: FlexibleRazorPayModule.open(options)
+  @objc(open:resolver:rejecter:)
+  func open(_ options: NSDictionary,
+            resolver resolve: @escaping RCTPromiseResolveBlock,
+            rejecter reject: @escaping RCTPromiseRejectBlock) {
+
+    self.currentResolve = resolve
+    self.currentReject = reject
+
+    guard let key = options["key"] as? String else {
+      reject("E_NO_KEY", "Key is required", nil)
+      return
+    }
+
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self else { return }
 
       self.razorpay = RazorpayCheckout.initWithKey(key, andDelegateWithData: self)
 
-      guard let topVC = UIApplication.shared.windows.first?.rootViewController else {
-        promise.reject(
-          NSError(
-            domain: "FlexibleRazorPayModule", code: 101,
-            userInfo: [NSLocalizedDescriptionKey: "Could not get view controller"])
-        )
+      guard
+        let window = UIApplication.shared.windows.first,
+        let rootVC = window.rootViewController
+      else {
+        reject("E_NO_VC", "Could not get root view controller", nil)
         return
       }
-      self.razorpay?.open(options, displayController: topVC)
+
+      self.razorpay?.open(options as! [String: Any], displayController: rootVC)
     }
   }
-}
 
-// MARK: - Razorpay Delegate
-extension FlexibleRazorPayModule: RazorpayPaymentCompletionProtocolWithData {
-  public func onPaymentError(
-    _ code: Int32, description str: String, andData response: [AnyHashable: Any]?
-  ) {
-    var responseDictionary = [String: Any]()
+  // MARK: - Razorpay Delegate
+
+  func onPaymentError(_ code: Int32,
+                      description str: String,
+                      andData response: [AnyHashable : Any]?) {
+
+    var userInfo: [String: Any] = [:]
     response?.forEach { key, value in
       if let key = key as? String {
-        responseDictionary[key] = value
+        userInfo[key] = value
       }
     }
+    userInfo["code"] = code
+    userInfo["description"] = str
 
-    responseDictionary["code"] = code
-    responseDictionary["description"] = str
-
-    currentPromise?.reject(
-      NSError(domain: "ExpoRazorpay", code: Int(code), userInfo: [NSLocalizedDescriptionKey: str])
-    )
-    currentPromise = nil
-
+    currentReject?("E_PAYMENT_ERROR", str, NSError(domain: "FlexibleRazorPay", code: Int(code), userInfo: userInfo))
+    currentResolve = nil
+    currentReject = nil
   }
 
-  public func onPaymentSuccess(_ payment_id: String, andData response: [AnyHashable: Any]?) {
-    var responseDictionary = [String: Any]()
-    print(response)
+  func onPaymentSuccess(_ payment_id: String,
+                        andData response: [AnyHashable : Any]?) {
+
+    var result: [String: Any] = [:]
     response?.forEach { key, value in
       if let key = key as? String {
-        responseDictionary[key] = value
+        result[key] = value
       }
     }
+    result["razorpay_payment_id"] = payment_id
 
-    responseDictionary["razorpay_payment_id"] = payment_id
-
-    currentPromise?.resolve(responseDictionary)
-    currentPromise = nil
+    currentResolve?(result)
+    currentResolve = nil
+    currentReject = nil
   }
-
 }
